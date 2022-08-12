@@ -164,7 +164,7 @@ class OutputLayer(Function):
             # grad_weight = grad_output.t().mm(input)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(outputs))).unsqueeze(dim=1)
+            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(outputs))).unsqueeze(dim=0)
             # grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias
@@ -350,11 +350,13 @@ class cmplx_phase_activation(nn.Module):
 class BasicModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear = MyLinearLayer(2, 1)
+        self.linear = MyLinearLayer(2, 2)
+        self.linear1 = MyLinearLayer(2, 1)
         self.phase_act = cmplx_phase_activation()
 
     def forward(self, x):
         x = self.linear(x)
+        x = self.linear1(x)
         x = self.phase_act(x)
         return x
 

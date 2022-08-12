@@ -69,7 +69,7 @@ class OutputLayerFB(Function):
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(outputs))).unsqueeze(dim=1)
+            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(outputs))).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias

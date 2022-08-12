@@ -16,7 +16,7 @@ format:
 
 website:
   title: "mlmvn"
-  site-url: "https://apfeifer.github.io/mlmvn/"
+  site-url: "https://antonpf.github.io/mlmvn/"
   description: ""
   execute: 
     enabled: false
@@ -24,14 +24,14 @@ website:
   open-graph: true
   reader-mode: true
   repo-branch: main
-  repo-url: "https://github.com/apfeifer/github.com/"
+  repo-url: "https://github.com/antonpf/mlmvn/"
   repo-actions: [issue]
   navbar:
     background: primary
     search: true
     right:
       - icon: github
-        href: "https://github.com/apfeifer/github.com/"
+        href: "https://github.com/antonpf/mlmvn/"
   sidebar:
     style: "floating"
 

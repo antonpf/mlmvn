@@ -1,0 +1,10 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_layers.ipynb
+      - 01_loss.ipynb
+      - 02_optim.ipynb
+      - section: Examples
+        contents:
+        - examples/Custom_Layer/00_custom_layer.ipynb

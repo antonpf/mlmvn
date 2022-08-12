@@ -351,11 +351,11 @@ class BasicModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.linear = MyLinearLayer(2, 1)
-        # self.phase_act = cmplx_phase_activation()
+        self.phase_act = cmplx_phase_activation()
 
     def forward(self, x):
         x = self.linear(x)
-        # x = self.phase_act(x)
+        x = self.phase_act(x)
         return x
 
 # %%

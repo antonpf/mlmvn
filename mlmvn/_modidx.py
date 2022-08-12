@@ -32,4 +32,12 @@ d = { 'settings': { 'allowed_cell_metadata_keys': '',
                 'tst_flags': 'notest',
                 'user': 'apfeifer',
                 'version': '0.0.1'},
-  'syms': {'mlmvn.core': {'mlmvn.core.foo': 'https://apfeifer.github.io/mlmvn/core.html#foo'}}}
+  'syms': { 'mlmvn.layers': { 'mlmvn.layers.OutputLayer': 'https://apfeifer.github.io/mlmvn/layers.html#outputlayer',
+                              'mlmvn.layers.OutputLayer.forward': 'https://apfeifer.github.io/mlmvn/layers.html#outputlayer.forward',
+                              'mlmvn.layers.OutputLayerFB': 'https://apfeifer.github.io/mlmvn/layers.html#outputlayerfb',
+                              'mlmvn.layers.OutputLayerFB.backward': 'https://apfeifer.github.io/mlmvn/layers.html#outputlayerfb.backward',
+                              'mlmvn.layers.OutputLayerFB.forward': 'https://apfeifer.github.io/mlmvn/layers.html#outputlayerfb.forward'},
+            'mlmvn.loss': { 'mlmvn.loss.ComplexMSELoss': 'https://apfeifer.github.io/mlmvn/loss.html#complexmseloss',
+                            'mlmvn.loss.ComplexMSELoss.backward': 'https://apfeifer.github.io/mlmvn/loss.html#complexmseloss.backward',
+                            'mlmvn.loss.ComplexMSELoss.forward': 'https://apfeifer.github.io/mlmvn/loss.html#complexmseloss.forward'},
+            'mlmvn.optim': {}}}

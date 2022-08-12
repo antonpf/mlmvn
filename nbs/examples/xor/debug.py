@@ -1,5 +1,6 @@
 # %%
 """ Demonstrates the easy of integration of a custom layer """
+from distutils.log import error
 import math
 import torch
 import torch.nn as nn
@@ -81,13 +82,30 @@ class Linear(nn.Module):
             self.input_features, self.output_features, self.bias is not None
         )
 
+#######################################################
+class MyMSELoss(Function):
+    
+    @staticmethod
+    def forward(ctx, y_pred, y):    
+        ctx.save_for_backward(y_pred, y)
+        return ( (y - y_pred)**2 ).mean()
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        y_pred, y = ctx.saved_tensors
+        grad_input = 2 * (y_pred - y) / y_pred.shape[0]        
+        return grad_input, None
+#######################################################
+
 class BasicModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear = Linear(2, 1)
+        self.linear = Linear(2, 2)
+        self.linear1 = Linear(2, 1)
 
     def forward(self, x):
         x = self.linear(x)
+        x = self.linear1(x)
         return x
 
 x = torch.Tensor([[0., 0.],
@@ -100,7 +118,8 @@ y = torch.Tensor([0., 1., 1., 0.]).reshape(x.shape[0], 1)
 model = BasicModel()
 y_pred = model(x)
 
-mseloss = F.mse_loss
+# mseloss = F.mse_loss
+mseloss = MyMSELoss.apply
 loss = mseloss(y_pred.view(-1), y)
 loss.backward()
 
@@ -122,6 +141,31 @@ class OutputLayer(Function):
 
         input, weight, bias = ctx.saved_tensors
         grad_input = grad_weight = grad_bias = None
+
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        outputs = torch.ones(1, grad_output.size(1))
+        grad_output = grad_output / (input.size(1) + 1)
+        if ctx.needs_input_grad[0]:
+            # grad_input = grad_output.mm(weight)
+            cinv = (torch.conj(weight) / torch.square(torch.abs(weight))).T
+            grad_input = grad_output.mm(cinv)
+        if ctx.needs_input_grad[1]:
+            x_pinv = torch.linalg.pinv(
+                        torch.cat(
+                            [torch.ones(1, input.size(0)), input.T[0:]]
+                        )
+                    ).T
+            angle_pinv = x_pinv[1:, :]
+            grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(outputs))
+            # cinv = (torch.conj(weight) / torch.square(torch.abs(weight))).T
+            # grad_weight = grad_output.t().mm(input)
+        if bias is not None and ctx.needs_input_grad[2]:
+            angle_pinv = x_pinv[0, :]
+            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(outputs))).unsqueeze(dim=1)
+            # grad_bias = grad_output.sum(0)
 
         return grad_input, grad_weight, grad_bias
 
@@ -162,6 +206,17 @@ class Complex_RMSE(nn.Module):
         predicted_angles = torch.remainder(inputs.angle() + 2 * np.pi, 2 * np.pi)
         # z = torch.abs(predicted) * torch.exp(1.j * predicted_angles)
         # error calculation
+
+        # errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles)
+        # if self.periodicity > 1:
+        #     # select smallest error
+        #     idx = torch.argmin(torch.abs(errors), dim=1, keepdim=True)
+        #     errors = errors.gather(1, idx)
+        #     errors_mean = errors.mean()
+        # else:
+        #     errors_mean = errors.mean()
+        # return errors_mean
+
         return MyComplexRMSELoss.apply(target_angles, predicted_angles, self.periodicity)
 
     def class2angle(self, actual: torch.tensor) -> torch.tensor:
@@ -187,16 +242,87 @@ class MyComplexRMSELoss(Function):
         if periodicity > 1:
             # select smallest error
             idx = torch.argmin(torch.abs(errors), dim=1, keepdim=True)
-            errors_mean = errors.gather(1, idx).mean()
+            errors = errors.gather(1, idx)
+            errors_mean = errors.mean()
         else:
             errors_mean = errors.mean()
         ctx.save_for_backward(errors)
         return errors_mean
     
     @staticmethod
-    def backward(ctx, grad_output):      
-        return grad_output, None, None
+    def backward(ctx, grad_output):
+        errors = ctx.saved_tensors
+
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        grad_input = grad_weight = grad_bias = None
+        grad_input = errors[0]
+        # These needs_input_grad checks are optional and there only to
+        # improve efficiency. If you want to make your code simpler, you can
+        # skip them. Returning gradients for inputs that don't require it is
+        # not an error.
+        if ctx.needs_input_grad[0]:
+            pass
+            #grad_input = grad_output.mm(weight)
+        if ctx.needs_input_grad[1]:
+            pass
+            #grad_weight = grad_output.t().mm(input)
+        if ctx.needs_input_grad[2]:
+            pass
+            # grad_bias = grad_output.sum(0)
+
+        return grad_input, grad_weight, grad_bias
+
+        return errors[0].mean(), None, None
     
+#######################################################
+
+#######################################################
+class MyMSELoss(Function):
+    
+    @staticmethod
+    def forward(ctx, y_pred, y, categories, periodicity):    
+        y_tmp = y
+        if y.size().__len__() == 1:
+            y_tmp = torch.unsqueeze(y, 1)
+
+        # Class to several angles due to periodicity using bisector
+        target_angles = (
+            (categories * torch.arange(periodicity) + y_tmp + 0.5)
+            / (categories * periodicity)
+            * 2
+            * np.pi
+        )
+        
+        predicted_angles = torch.remainder(y_pred.angle() + 2 * np.pi, 2 * np.pi)
+        
+        # error_angles_list = []
+        # for i in range(target_angles.shape[1]):
+        #     # error_angles_list.append(target_angles[:, i].unsqueeze(1) - predicted_angles.squeeze())
+        #     error_angles_list.append(torch.exp(1.0j * target_angles[:, i].unsqueeze(1)) - torch.exp(1.0j * predicted_angles.squeeze()))
+
+        
+        # errors = error_angles_list[0]
+        errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles.unsqueeze(1))
+
+        if periodicity > 1:
+            # select smallest error
+            idx = torch.argmin(torch.abs(errors), dim=1, keepdim=True)
+            errors = errors.gather(1, idx)
+
+        ctx.save_for_backward(y_pred, y, errors)
+        return errors.mean()
+        # return ( (y - y_pred)**2 ).mean()
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        y_pred, y, errors = ctx.saved_tensors
+        #grad_input = 2 * (y_pred - y) / y_pred.shape[0]        
+        grad_input = errors.squeeze()
+        return grad_input, None, None, None
 #######################################################
 
 # %%
@@ -225,11 +351,11 @@ class BasicModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.linear = MyLinearLayer(2, 1)
-        self.phase_act = cmplx_phase_activation()
+        # self.phase_act = cmplx_phase_activation()
 
     def forward(self, x):
         x = self.linear(x)
-        x = self.phase_act(x)
+        # x = self.phase_act(x)
         return x
 
 # %%
@@ -262,11 +388,22 @@ x
 x = x.type(torch.cdouble)
 y_pred = model(x)
 
-criterion = Complex_RMSE(categories=2, periodicity=2)
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+# criterion = Complex_RMSE(categories=2, periodicity=2)
+# optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+optimizer = torch.optim.SGD(model.parameters(), lr=1)
 
-loss = criterion(y_pred, y)
+# loss = criterion(y_pred, y)
+
+mseloss = MyMSELoss.apply
+loss = mseloss(y_pred.view(-1), y, 2, 2)
+
 loss.backward()
+
+print(model.linear.weights.grad) 
+print(model.linear.bias.grad)
+
+optimizer.step()
+
 
 # %%
 print('Forward computation thru model:', model(x))
@@ -274,27 +411,27 @@ print('Forward computation thru model:', model(x))
 # %%
 
 
-# %%
-# criterion = torch.nn.MSELoss(reduction='sum')
-# criterion = MSEC(categories=2, periodicity=2)
-criterion = Complex_RMSE(categories=2, periodicity=2)
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+# # %%
+# # criterion = torch.nn.MSELoss(reduction='sum')
+# # criterion = MSEC(categories=2, periodicity=2)
+# criterion = Complex_RMSE(categories=2, periodicity=2)
+# optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
 
-# %%
-y_pred = model(x)
+# # %%
+# y_pred = model(x)
 
-# %%
-y_pred
+# # %%
+# y_pred
 
-# %%
-loss = criterion(y_pred, y)
-loss
+# # %%
+# loss = criterion(y_pred, y)
+# loss
 
-# %%
-loss.backward()
+# # %%
+# loss.backward()
 
-# %%
-optimizer.step()
+# # %%
+# optimizer.step()
 
 # %%
 
@@ -303,12 +440,13 @@ for t in range(2000):
     y_pred = model(x)
 
     # Compute and print loss
-    loss = criterion(y_pred, y)
+    # loss = criterion(y_pred, y)
+    loss = mseloss(y_pred.view(-1), y, 2, 2)
     if t % 100 == 99:
-        # print(t, torch.abs(loss))
-        print(t, torch.square(
-                np.pi - torch.abs(torch.abs(loss) - np.pi)
-            ))
+        print(t, torch.abs(loss))
+        # print(t, torch.square(
+        #         np.pi - torch.abs(torch.abs(loss) - np.pi)
+        #     ))
         
 
     # Zero gradients, perform a backward pass, and update the weights.
@@ -316,10 +454,20 @@ for t in range(2000):
     loss.backward()
     optimizer.step()
 
-print(f'Result: {model.string()}')
+# print(f'Result: {model.string()}')
 
 # %%
 
+def angle2class(x: torch.tensor, categories, periodicity) -> torch.tensor:
+        tmp = x.angle() + 2 * np.pi
+        angle = torch.remainder(tmp, 2 * np.pi)
+
+        # This will be the discrete output (the number of sector)
+        o = torch.floor(categories * periodicity * angle / (2 * np.pi))
+        return torch.remainder(o, categories)
+
+predictions = model(x)
+angle2class(predictions[0], 2, 2)
 
 # %%
 

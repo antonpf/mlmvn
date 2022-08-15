@@ -227,20 +227,14 @@ def angle2class(x: torch.tensor, categories:int, periodicity:int) -> torch.tenso
 
 # %%
 y_pred = model(X_train_t)
-
-# %%
 y_pred = angle2class(y_pred, categories, periodicity)
-
-# %%
-y_pred.squeeze()
-
-# %%
-y_train_t
-
-# %%
 acc = accuracy(y_pred.squeeze(), y_train_t)
+acc
 
 # %%
+y_pred = model(X_test_t)
+y_pred = angle2class(y_pred, categories, periodicity)
+acc = accuracy(y_pred.squeeze(), y_test_t)
 acc
 
 

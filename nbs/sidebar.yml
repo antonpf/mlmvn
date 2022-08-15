@@ -7,4 +7,4 @@ website:
       - 02_optim.ipynb
       - section: Examples
         contents:
-        - examples/Custom_Layer/00_custom_layer.ipynb
+        - examples/xor/00_xor.ipynb

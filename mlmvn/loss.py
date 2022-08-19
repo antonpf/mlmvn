@@ -28,7 +28,8 @@ class ComplexMSELoss(Function):
         )
         
         predicted_angles = torch.remainder(y_pred.angle() + 2 * np.pi, 2 * np.pi)
-        errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles.unsqueeze(1))
+        # errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles.unsqueeze(1))
+        errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles)
         loss_angle = target_angles - predicted_angles.unsqueeze(dim=1)
 
 

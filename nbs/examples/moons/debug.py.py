@@ -28,6 +28,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from mlmvn.layers import FirstLayer, HiddenLayer, OutputLayer, cmplx_phase_activation
 from mlmvn.loss import ComplexMSELoss
+from mlmvn.optim import MySGD
 
 torch.manual_seed(0)  #  for repeatable results
 
@@ -35,7 +36,21 @@ torch.manual_seed(0)  #  for repeatable results
 
 
 # %%
+def accuracy(out, yb):
+    out = out.type(torch.double)
+    yb = yb.type(torch.double)
+    x = 0
+    for i in range(len(out)):
+        x += torch.equal(out[i], yb[i])
+    return x / len(out)
 
+def angle2class(x: torch.tensor, categories:int, periodicity:int) -> torch.tensor:
+    tmp = x.angle() + 2 * np.pi
+    angle = torch.remainder(tmp, 2 * np.pi)
+
+    # This will be the discrete output (the number of sector)
+    o = torch.floor(categories * periodicity * angle / (2 * np.pi))
+    return torch.remainder(o, categories)
 
 # %% [markdown]
 # ## Dataset
@@ -52,12 +67,12 @@ X, y = datasets.make_moons(n_samples=n_samples, noise=0.1, random_state=42)
 X = StandardScaler().fit_transform(X)
 # X = transform(X, alpha=np.pi / 8)
 
-plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
-plt.title("Moons Dataset - Noise: $0.1$")
-plt.xlabel("Feature 1")
-plt.ylabel("Feature 2")
-plt.grid()
-plt.show()
+# plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
+# plt.title("Moons Dataset - Noise: $0.1$")
+# plt.xlabel("Feature 1")
+# plt.ylabel("Feature 2")
+# plt.grid()
+# plt.show()
 
 # %% [markdown]
 # ## MLMVN
@@ -138,10 +153,11 @@ def train(
             # Forward pass: Compute predicted y by passing x to the model
             y_pred = model(xb)
 
-            loss = criterion(y_pred.view(-1), yb, categories, periodicity)
+            # loss = criterion(y_pred.view(-1), yb, categories, periodicity)
+            loss = criterion(y_pred, yb, categories, periodicity)
             # wandb.log({"loss": torch.abs(loss)})
             
-            if i % 10 == 9: print(i, torch.abs(loss))
+            if i % 10 == 9: print(torch.abs(loss))
             batch_loss.append((torch.abs(loss)).detach().numpy())
 
             # Zero gradients, perform a backward pass, and update the weights.
@@ -150,6 +166,9 @@ def train(
             optimizer.step()
 
         losses.append(sum(batch_loss)/len(batch_loss))
+        y_pred = model(X)
+        y_pred = angle2class(y_pred, categories, periodicity)
+        scores.append(accuracy(y_pred.squeeze(), y))
 
     return (
         losses,
@@ -176,7 +195,7 @@ X_test_t = X_test_t.type(torch.cdouble)
 # %%
 model = MLMVN()
 criterion = ComplexMSELoss.apply
-optimizer = torch.optim.SGD(model.parameters(), lr=1)
+optimizer = MySGD(model.parameters(), lr=1)
 categories =  2
 periodicity = 1
 
@@ -191,9 +210,9 @@ periodicity = 1
 ) = train(model, X_train_t, y_train_t, epochs=100, batch_size=100, optimizer=optimizer, criterion=criterion, categories=categories, periodicity=periodicity)
 
 # %%
-def plot_loss(title, losses):
+def plot_loss(title, losses, scores):
     plt.rcParams["axes.grid"] = True
-    fig, ax1 = plt.subplots(1, 1, figsize=(14, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4))
     fig.suptitle("CVNN - Moons")
     ax1.plot(np.linspace(1, len(losses), len(losses)), losses)
     ax1.set_xlabel("Epoch")
@@ -201,29 +220,19 @@ def plot_loss(title, losses):
     ax1.set_title("Loss")
     ax1.set_xlim(0, len(losses))
 
+    ax2.plot(np.linspace(1, len(scores), len(scores)), scores)
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel("Accuracy")
+    ax2.set_title("Accuracy by Epoch")
+    ax2.set_xlim(0, len(losses))
+
     plt.show()
 
 plot_loss(
     "CVNN - Moons",
     losses,
+    scores
     )
-
-# %%
-def accuracy(out, yb):
-    out = out.type(torch.double)
-    yb = yb.type(torch.double)
-    x = 0
-    for i in range(len(out)):
-        x += torch.equal(out[i], yb[i])
-    return x / len(out)
-
-def angle2class(x: torch.tensor, categories:int, periodicity:int) -> torch.tensor:
-    tmp = x.angle() + 2 * np.pi
-    angle = torch.remainder(tmp, 2 * np.pi)
-
-    # This will be the discrete output (the number of sector)
-    o = torch.floor(categories * periodicity * angle / (2 * np.pi))
-    return torch.remainder(o, categories)
 
 # %%
 y_pred = model(X_train_t)

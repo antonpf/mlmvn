@@ -296,7 +296,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1)
     list_bias,
     list_outputs,
     list_self_adjusting_learning_rate,
-) = train(model, x_train, y_train, epochs=100, batch_size=538, optimizer=optimizer, criterion=criterion, categories=categories, periodicity=periodicity)
+) = train(model, x_train, y_train, epochs=20, batch_size=538, optimizer=optimizer, criterion=criterion, categories=categories, periodicity=periodicity)
 
 # %%
 def plot_loss(title, losses):

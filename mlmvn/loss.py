@@ -30,7 +30,7 @@ class ComplexMSELoss(Function):
         predicted_angles = torch.remainder(y_pred.angle() + 2 * np.pi, 2 * np.pi)
         # errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles.unsqueeze(1))
         errors = torch.exp(1.0j * target_angles) - torch.exp(1.0j * predicted_angles)
-        loss_angle = target_angles - predicted_angles.unsqueeze(dim=1)
+        loss_angle = target_angles - predicted_angles
 
 
         if periodicity > 1:
@@ -54,5 +54,6 @@ class ComplexMSELoss(Function):
     @staticmethod
     def backward(ctx, grad_output):
         y_pred, y, errors = ctx.saved_tensors
-        grad_input = errors.squeeze()
+        grad_input = errors
+        if y_pred.shape != errors.shape: grad_input = errors.squeeze()
         return grad_input, None, None, None

@@ -55,4 +55,6 @@ d = { 'settings': { 'allowed_cell_metadata_keys': '',
             'mlmvn.loss': { 'mlmvn.loss.ComplexMSELoss': 'https://antonpf.github.io/mlmvn/loss.html#complexmseloss',
                             'mlmvn.loss.ComplexMSELoss.backward': 'https://antonpf.github.io/mlmvn/loss.html#complexmseloss.backward',
                             'mlmvn.loss.ComplexMSELoss.forward': 'https://antonpf.github.io/mlmvn/loss.html#complexmseloss.forward'},
-            'mlmvn.optim': {}}}
+            'mlmvn.optim': { 'mlmvn.optim.MySGD': 'https://antonpf.github.io/mlmvn/optim.html#mysgd',
+                             'mlmvn.optim.MySGD.step': 'https://antonpf.github.io/mlmvn/optim.html#mysgd.step',
+                             'mlmvn.optim.sgd': 'https://antonpf.github.io/mlmvn/optim.html#sgd'}}}

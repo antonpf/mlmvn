@@ -26,7 +26,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 
-from mlmvn.layers import FirstLayer, HiddenLayer, OutputLayer, cmplx_phase_activation
+from mlmvn.layers import FirstLayer, HiddenLayer, OutputLayer, cmplx_phase_activation, MyDropout
 from mlmvn.loss import ComplexMSELoss
 from mlmvn.optim import MySGD
 
@@ -67,12 +67,12 @@ X, y = datasets.make_moons(n_samples=n_samples, noise=0.1, random_state=42)
 X = StandardScaler().fit_transform(X)
 # X = transform(X, alpha=np.pi / 8)
 
-# plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
-# plt.title("Moons Dataset - Noise: $0.1$")
-# plt.xlabel("Feature 1")
-# plt.ylabel("Feature 2")
-# plt.grid()
-# plt.show()
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
+plt.title("Moons Dataset - Noise: $0.1$")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.grid()
+plt.show()
 
 # %% [markdown]
 # ## MLMVN
@@ -86,6 +86,7 @@ class MLMVN(nn.Module):
         # self.hidden_linear = HiddenLayer(4, 4)
         # self.phase_act2 = cmplx_phase_activation()
         self.output_linear = OutputLayer(4, 1)
+        self.dropout = MyDropout(0.25)
         self.phase_act3 = cmplx_phase_activation()
 
     def forward(self, x):
@@ -94,6 +95,7 @@ class MLMVN(nn.Module):
         # x = self.hidden_linear(x)
         # x = self.phase_act2(x)
         x = self.output_linear(x)
+        x = self.dropout(x)
         x = self.phase_act3(x)
         return x
     
@@ -153,7 +155,6 @@ def train(
             # Forward pass: Compute predicted y by passing x to the model
             y_pred = model(xb)
 
-            # loss = criterion(y_pred.view(-1), yb, categories, periodicity)
             loss = criterion(y_pred, yb, categories, periodicity)
             # wandb.log({"loss": torch.abs(loss)})
             
@@ -195,6 +196,7 @@ X_test_t = X_test_t.type(torch.cdouble)
 # %%
 model = MLMVN()
 criterion = ComplexMSELoss.apply
+# optimizer = torch.optim.SGD(model.parameters(), lr=1)
 optimizer = MySGD(model.parameters(), lr=1)
 categories =  2
 periodicity = 1

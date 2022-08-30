@@ -2,7 +2,7 @@
 
 # %% auto 0
 __all__ = ['FirstLayer', 'FirstLayerFB', 'HiddenLayer', 'HiddenLayerFB', 'OutputLayer', 'OutputLayerFB', 'phase_activation',
-           'cmplx_phase_activation']
+           'cmplx_phase_activation', 'DropoutFB', 'MyDropout']
 
 # %% ../nbs/00_layers.ipynb 3
 import math
@@ -230,3 +230,29 @@ class cmplx_phase_activation(nn.Module):
 
     def forward(self, x):
         return phase_activation.apply(x)
+
+# %% ../nbs/00_layers.ipynb 8
+class DropoutFB(Function):
+	@staticmethod
+	def forward(ctx, input, p):
+		#ctx.save_for_backward(input)
+		#return input / torch.abs(input)
+		binomial = torch.distributions.binomial.Binomial(probs=1-p)
+		return input * binomial.sample(input.size()) * (1.0/(1-p))
+	
+	@staticmethod
+	def backward(ctx, grad_output):
+		return grad_output, None
+  
+
+class MyDropout(nn.Module):
+    def __init__(self, p: float = 0.5):
+        super(MyDropout, self).__init__()
+        if p < 0 or p > 1:
+            raise ValueError("dropout probability has to be between 0 and 1, " "but got {}".format(p))
+        self.p = p
+
+    def forward(self, X):
+        if self.training:
+            return DropoutFB.apply(X, self.p)
+        return X

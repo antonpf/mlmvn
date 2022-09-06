@@ -28,7 +28,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from mlmvn.layers import FirstLayer, HiddenLayer, OutputLayer, cmplx_phase_activation, MyDropout
 from mlmvn.loss import ComplexMSELoss
-from mlmvn.optim import MySGD
+from mlmvn.optim import MySGD, ECL
 
 torch.manual_seed(0)  #  for repeatable results
 
@@ -67,17 +67,36 @@ X, y = datasets.make_moons(n_samples=n_samples, noise=0.1, random_state=42)
 X = StandardScaler().fit_transform(X)
 # X = transform(X, alpha=np.pi / 8)
 
-plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
-plt.title("Moons Dataset - Noise: $0.1$")
-plt.xlabel("Feature 1")
-plt.ylabel("Feature 2")
-plt.grid()
-plt.show()
+# plt.scatter(X[:, 0], X[:, 1], c=y, cmap="tab10")
+# plt.title("Moons Dataset - Noise: $0.1$")
+# plt.xlabel("Feature 1")
+# plt.ylabel("Feature 2")
+# plt.grid()
+# plt.show()
 
 # %% [markdown]
 # ## MLMVN
 
 # %%
+
+def backward_hook (module, grad_input, grad_output) :
+    print('module:', module)
+    print ('grad_input:', grad_input)
+    print ('grad_output:', grad_output)
+
+grad_dict: dict = {}
+
+def fc_hook(layer_name, grad_input, grad_output): 
+    if layer_name in grad_dict:
+        grad_dict[layer_name]["grad_input"].append(grad_input)
+        grad_dict[layer_name]["grad_output"].append(grad_output)
+    else :
+        grad_dict[layer_name] = {}
+        grad_dict[layer_name]["grad_input"] = []
+        grad_dict[layer_name]["grad_input"].append(grad_input)
+        grad_dict[layer_name]["grad_output"] = []
+        grad_dict[layer_name]["grad_output"].append(grad_output)
+
 class MLMVN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -86,8 +105,10 @@ class MLMVN(nn.Module):
         # self.hidden_linear = HiddenLayer(4, 4)
         # self.phase_act2 = cmplx_phase_activation()
         self.output_linear = OutputLayer(4, 1)
-        self.dropout = MyDropout(0.25)
+        # self.dropout = MyDropout(0.25)
         self.phase_act3 = cmplx_phase_activation()
+        # self.fc1_hook_handle = self.first_linear.register_backward_hook(self.fc1_backward_hook)
+        # self.fc2_hook_handle = self.output_linear.register_backward_hook(self.fc2_backward_hook)
 
     def forward(self, x):
         x = self.first_linear(x)
@@ -95,9 +116,15 @@ class MLMVN(nn.Module):
         # x = self.hidden_linear(x)
         # x = self.phase_act2(x)
         x = self.output_linear(x)
-        x = self.dropout(x)
+        # x = self.dropout(x)
         x = self.phase_act3(x)
         return x
+
+    # def fc1_backward_hook(self, module, grad_input, grad_output):  # module is Linear in this case. Ignored.
+    #     fc_hook("fc1", grad_input, grad_output)
+    #     self.test_output_grad_fc1 = grad_output
+    # def fc2_backward_hook(self, module, grad_input, grad_output):
+    #     fc_hook("fc2", grad_input, grad_output)
     
     def predict(self, x, loss):
         """
@@ -117,7 +144,7 @@ class MLMVN(nn.Module):
         # return torch.argmax(output, 1)
         return output
 
-    # Implement the train function given a training dataset X and correcsponding labels y
+# Implement the train function given a training dataset X and correcsponding labels y
 def train(
     model,
     X,
@@ -164,7 +191,7 @@ def train(
             # Zero gradients, perform a backward pass, and update the weights.
             optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
+            optimizer.step(inputs=xb, layers=list(model.children()))
 
         losses.append(sum(batch_loss)/len(batch_loss))
         y_pred = model(X)
@@ -197,7 +224,7 @@ X_test_t = X_test_t.type(torch.cdouble)
 model = MLMVN()
 criterion = ComplexMSELoss.apply
 # optimizer = torch.optim.SGD(model.parameters(), lr=1)
-optimizer = MySGD(model.parameters(), lr=1)
+optimizer = ECL(model.parameters(), lr=1)
 categories =  2
 periodicity = 1
 

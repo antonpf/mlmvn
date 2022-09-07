@@ -365,20 +365,29 @@ def _single_tensor_sgd(params: List[Tensor],
                        has_sparse_grad: bool):
 
     toggle = True
+    input_layer = []
+    input_layer.append(inputs)
     output = inputs
 
     for i, param in enumerate(params):
 
         if toggle == True:
-            x_pinv = torch.linalg.pinv(torch.cat([torch.ones(1, output.size(0)), output.T[0:]])).T
-            w_times_x= torch.mm(output, param)
-            output = torch.add(w_times_x, params[i+1])
-        
+            x_pinv = torch.linalg.pinv(torch.cat([torch.ones(1, input_layer[-1].size(0)), input_layer[-1].T[0:]])).T  
             angle_pinv = x_pinv[1:, :]
-            grad_weight = angle_pinv @ torch.div(layers[i].grad_output, torch.abs(output))
+            if i == len(params) - 2:
+                grad_weight = angle_pinv @ torch.div(layers[i].grad_output, torch.abs(torch.ones(1, 1)))
+            else:
+                w_times_x= torch.mm(input_layer[-1], param)
+                output = torch.add(w_times_x, params[i+1])
+                grad_weight = angle_pinv @ torch.div(layers[i].grad_output, torch.abs(output))
+            d_p = grad_weight
         else: 
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(layers[i-1].grad_output, torch.abs(output))).unsqueeze(dim=0)
+            if i == len(params) - 1:
+                grad_bias = (angle_pinv @ torch.div(layers[i-1].grad_output, torch.abs(torch.ones(1, 1)))).unsqueeze(dim=0)
+            else:
+                grad_bias = (angle_pinv @ torch.div(layers[i-1].grad_output, torch.abs(output))).unsqueeze(dim=0)
+            d_p = grad_bias
         
         # 
         # grad_weight = angle_pinv @ torch.div(model.first_linear.grad_output, torch.abs(output))
@@ -391,7 +400,7 @@ def _single_tensor_sgd(params: List[Tensor],
         # grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
         # grad_bias = grad_bias * (-1)
 
-        d_p = d_p_list[i]
+        # d_p = d_p_list[i]
         if weight_decay != 0:
             d_p = d_p.add(param, alpha=weight_decay)
 
@@ -410,11 +419,19 @@ def _single_tensor_sgd(params: List[Tensor],
                 d_p = buf
 
         alpha = lr if maximize else -lr
-        param.add_(d_p, alpha=alpha)
+        param.add_(d_p)
 
-        if toggle == False:
+        if toggle == False and not( i == len(params) - 1 ):
             # Update Output with new param
-            w_times_x= torch.mm(inputs, params[i-1])
-            output = torch.add(w_times_x, param)
-            output = output / torch.abs(output)
+            if i == len(params) - 3:
+                # output = torch.ones(1, param.shape[0])
+                w_times_x= torch.mm(input_layer[-1], params[i-1])
+                output = torch.add(w_times_x, param)
+                output = output / torch.abs(output)
+                input_layer.append(output)
+            else:
+                w_times_x= torch.mm(input_layer[-1], params[i-1])
+                output = torch.add(w_times_x, param)
+                output = output / torch.abs(output)
+                input_layer.append(output)
         toggle = not toggle

@@ -183,6 +183,7 @@ class OutputLayer(nn.Module):
 
     def _hook_fn(self, tensor):
         self.grad_output = tensor / (self.size_in + 1)
+        # self.grad_output = torch.ones(1, self.size_out)
 
 class OutputLayerFB(Function):
 

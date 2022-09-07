@@ -1,0 +1,71 @@
+# # See https://pre-commit.com for more information
+# # See https://pre-commit.com/hooks.html for more hooks
+# repos:
+# -   repo: https://github.com/pre-commit/pre-commit-hooks
+#     rev: v3.2.0
+#     hooks:
+#     -   id: trailing-whitespace
+#     -   id: end-of-file-fixer
+#     -   id: check-yaml
+#     -   id: check-added-large-files
+
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    -   repo: meta
+        hooks:
+        -   id: identity
+            name: Modified Files
+        -   id: identity
+            name: Modified Notebooks
+            files: .ipynb
+    # -   repo: https://github.com/nbQA-dev/nbQA
+    #     rev: 1.1.1
+    #     hooks:
+    #         -   id: nbqa-flake8
+    #             args: [--ignore=E501]
+    # Black: The uncompromising Python code formatter (with Jupyter Notebook support)
+    -   repo: https://github.com/psf/black
+        rev: '22.8.0'
+        hooks:
+        -   id: black-jupyter
+            name: black-jupyter
+            description:
+                "Black: The uncompromising Python code formatter (with Jupyter Notebook support)"
+            entry: black
+            language: python
+            minimum_pre_commit_version: 2.9.2
+            require_serial: true
+            types_or: [jupyter] # python, pyi,
+            additional_dependencies: [".[jupyter]"]
+    # Trailing white space removal includes other files as too but excluding ipynb files, also a large file check:
+    -   repo: https://github.com/pre-commit/pre-commit-hooks
+        rev: 'v4.0.1'
+        hooks:
+        -   id: trailing-whitespace
+            exclude: .py
+        -   id: end-of-file-fixer
+            exclude: .py
+        -   id: check-yaml
+    # Clean usueless Notebook metadata that adds extra changes and conflicts - eg: cell run counts:
+    -   repo: local
+        hooks:
+        -   id: nbdev_clean
+            name: nbdev_clean
+            entry: nbdev_clean
+            # additional_dependencies: [nbdev>=2.2.6, "black[jupyter]>=21.9b0"]
+            description: "Clean metadata from notebooks to avoid merge conflicts"
+            language: system
+            always_run: true
+            pass_filenames: false
+    # Convert the notebooks into python scripts:
+    -   repo: local
+        hooks:
+        -   id: nbdev_export
+            name: nbdev_export
+            entry: nbdev_export
+            # additional_dependencies: [nbdev>=2.2.6, "black[jupyter]>=21.9b0"]
+            language: system
+            always_run: true
+            pass_filenames: false
+            description: "Export notebooks to modules and build modidx"

@@ -13,7 +13,8 @@ from torch.autograd import Function
 
 # %% ../nbs/00_layers.ipynb 5
 class FirstLayer(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -23,8 +24,10 @@ class FirstLayer(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -37,18 +40,18 @@ class FirstLayer(nn.Module):
 
     def _hook_fn(self, tensor):
         self.grad_output = tensor
-        
+
 
 class FirstLayerFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -61,7 +64,7 @@ class FirstLayerFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-      
+
         # output = torch.ones(1, grad_output.size(1))
         # grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -69,25 +72,24 @@ class FirstLayerFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias
 
-        
-
 # %% ../nbs/00_layers.ipynb 6
 class HiddenLayer(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -97,8 +99,10 @@ class HiddenLayer(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -112,17 +116,17 @@ class HiddenLayer(nn.Module):
     def _hook_fn(self, tensor):
         self.grad_output = tensor / (self.size_in + 1)
 
-class HiddenLayerFB(Function):
 
+class HiddenLayerFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -135,7 +139,7 @@ class HiddenLayerFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-        
+
         # output = torch.ones(1, grad_output.size(1))
         grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -143,23 +147,24 @@ class HiddenLayerFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias
 
 # %% ../nbs/00_layers.ipynb 7
 class OutputLayer(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -169,8 +174,10 @@ class OutputLayer(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -185,17 +192,17 @@ class OutputLayer(nn.Module):
         self.grad_output = tensor / (self.size_in + 1)
         # self.grad_output = torch.ones(1, self.size_out)
 
-class OutputLayerFB(Function):
 
+class OutputLayerFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -208,7 +215,7 @@ class OutputLayerFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-        
+
         # output = torch.ones(1, grad_output.size(1))
         grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -216,34 +223,35 @@ class OutputLayerFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias
 
 # %% ../nbs/00_layers.ipynb 9
 class phase_activation(Function):
-
     @staticmethod
     def forward(ctx, input):
         ctx.save_for_backward(input)
         return input / torch.abs(input)
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         return grad_output, None
 
+
 class cmplx_phase_activation(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self):
         super().__init__()
 
@@ -252,23 +260,25 @@ class cmplx_phase_activation(nn.Module):
 
 # %% ../nbs/00_layers.ipynb 11
 class DropoutFB(Function):
-	@staticmethod
-	def forward(ctx, input, p):
-		#ctx.save_for_backward(input)
-		#return input / torch.abs(input)
-		binomial = torch.distributions.binomial.Binomial(probs=1-p)
-		return input * binomial.sample(input.size()) * (1.0/(1-p))
-	
-	@staticmethod
-	def backward(ctx, grad_output):
-		return grad_output, None
-  
+    @staticmethod
+    def forward(ctx, input, p):
+        # ctx.save_for_backward(input)
+        # return input / torch.abs(input)
+        binomial = torch.distributions.binomial.Binomial(probs=1 - p)
+        return input * binomial.sample(input.size()) * (1.0 / (1 - p))
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output, None
+
 
 class MyDropout(nn.Module):
     def __init__(self, p: float = 0.5):
         super(MyDropout, self).__init__()
         if p < 0 or p > 1:
-            raise ValueError("dropout probability has to be between 0 and 1, " "but got {}".format(p))
+            raise ValueError(
+                "dropout probability has to be between 0 and 1, " "but got {}".format(p)
+            )
         self.p = p
 
     def forward(self, X):
@@ -278,7 +288,8 @@ class MyDropout(nn.Module):
 
 # %% ../nbs/00_layers.ipynb 13
 class FirstLayerCplx(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -288,8 +299,10 @@ class FirstLayerCplx(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -298,17 +311,17 @@ class FirstLayerCplx(nn.Module):
     def forward(self, x):
         return FirstLayerCplxFB.apply(x, self.weights, self.bias)
 
-class FirstLayerCplxFB(Function):
 
+class FirstLayerCplxFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -321,7 +334,7 @@ class FirstLayerCplxFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-        
+
         # output = torch.ones(1, grad_output.size(1))
         # grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -329,23 +342,24 @@ class FirstLayerCplxFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias
 
 # %% ../nbs/00_layers.ipynb 14
 class HiddenLayerCplx(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -355,8 +369,10 @@ class HiddenLayerCplx(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -365,17 +381,17 @@ class HiddenLayerCplx(nn.Module):
     def forward(self, x):
         return HiddenLayerCplxFB.apply(x, self.weights, self.bias)
 
-class HiddenLayerCplxFB(Function):
 
+class HiddenLayerCplxFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -388,7 +404,7 @@ class HiddenLayerCplxFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-        
+
         # output = torch.ones(1, grad_output.size(1))
         grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -396,23 +412,24 @@ class HiddenLayerCplxFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias
 
 # %% ../nbs/00_layers.ipynb 15
 class OutputLayerCplx(nn.Module):
-    """ Custom Linear layer but mimics a standard linear layer """
+    """Custom Linear layer but mimics a standard linear layer"""
+
     def __init__(self, size_in, size_out):
         super().__init__()
         self.size_in, self.size_out = size_in, size_out
@@ -422,8 +439,10 @@ class OutputLayerCplx(nn.Module):
         weights = torch.randn(
             self.size_in, self.size_out, dtype=torch.cdouble
         ) / math.sqrt(self.size_in)
-        self.weights = nn.Parameter(weights)  # nn.Parameter is a Tensor that's a module parameter.
-        
+        self.weights = nn.Parameter(
+            weights
+        )  # nn.Parameter is a Tensor that's a module parameter.
+
         bias = torch.unsqueeze(
             torch.zeros(size_out, dtype=torch.cdouble, requires_grad=True), 0
         )
@@ -432,17 +451,17 @@ class OutputLayerCplx(nn.Module):
     def forward(self, x):
         return OutputLayerCplxFB.apply(x, self.weights, self.bias)
 
-class OutputLayerCplxFB(Function):
 
+class OutputLayerCplxFB(Function):
     @staticmethod
     def forward(ctx, input, weights, bias):
-        w_times_x= torch.mm(input, weights)
+        w_times_x = torch.mm(input, weights)
         output = torch.add(w_times_x, bias)
         ctx.save_for_backward(input, weights, bias, output)
         return output
-    
+
     @staticmethod
-    def backward(ctx, grad_output):  
+    def backward(ctx, grad_output):
         # This is a pattern that is very convenient - at the top of backward
         # unpack saved_tensors and initialize all gradients w.r.t. inputs to
         # None. Thanks to the fact that additional trailing Nones are
@@ -455,7 +474,7 @@ class OutputLayerCplxFB(Function):
         # improve efficiency. If you want to make your code simpler, you can
         # skip them. Returning gradients for inputs that don't require it is
         # not an error.
-        
+
         # output = torch.ones(1, grad_output.size(1))
         grad_output = grad_output / (input.size(1) + 1)
         if ctx.needs_input_grad[0]:
@@ -463,16 +482,16 @@ class OutputLayerCplxFB(Function):
             grad_input = grad_output.mm(cinv)
         if ctx.needs_input_grad[1]:
             x_pinv = torch.linalg.pinv(
-                        torch.cat(
-                            [torch.ones(1, input.size(0)), input.T[0:]]
-                        )
-                    ).T
+                torch.cat([torch.ones(1, input.size(0)), input.T[0:]])
+            ).T
             angle_pinv = x_pinv[1:, :]
             grad_weight = angle_pinv @ torch.div(grad_output, torch.abs(output))
             grad_weight = grad_weight * (-1)
         if bias is not None and ctx.needs_input_grad[2]:
             angle_pinv = x_pinv[0, :]
-            grad_bias = (angle_pinv @ torch.div(grad_output, torch.abs(output))).unsqueeze(dim=0)
+            grad_bias = (
+                angle_pinv @ torch.div(grad_output, torch.abs(output))
+            ).unsqueeze(dim=0)
             grad_bias = grad_bias * (-1)
 
         return grad_input, grad_weight, grad_bias

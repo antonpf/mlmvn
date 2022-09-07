@@ -79,4 +79,5 @@ d = { 'settings': { 'allowed_cell_metadata_keys': '',
                              'mlmvn.optim.ECL.step': 'https://antonpf.github.io/mlmvn/optim.html#ecl.step',
                              'mlmvn.optim.MySGD': 'https://antonpf.github.io/mlmvn/optim.html#mysgd',
                              'mlmvn.optim.MySGD.step': 'https://antonpf.github.io/mlmvn/optim.html#mysgd.step',
+                             'mlmvn.optim.ecl': 'https://antonpf.github.io/mlmvn/optim.html#ecl',
                              'mlmvn.optim.sgd': 'https://antonpf.github.io/mlmvn/optim.html#sgd'}}}

@@ -20,4 +20,6 @@ dependencies:
   - toml=0.10.2
   - torchaudio=0.12.1
   - torchvision=0.2.2
-  - matplotlib 
+  - matplotlib=3.5.3
+  - seaborn=0.12.0
+  - wandb=0.13.1

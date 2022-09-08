@@ -8,3 +8,9 @@ website:
       - section: Examples
         contents:
         - examples/xor/00_xor.ipynb
+        - section: Moons
+          contents:
+          - examples/moons/00_moons.ipynb
+        - section: SDD
+          contents:
+          - examples/autass/00_autass.ipynb

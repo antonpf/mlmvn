@@ -13,6 +13,7 @@ _tmp*
 tmp*
 tags
 *.pkg
+wandb/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -18,11 +18,8 @@ website:
   title: "mlmvn"
   site-url: "https://antonpf.github.io/mlmvn/"
   description: ""
-  execute: 
-    enabled: false
   twitter-card: true
   open-graph: true
-  reader-mode: true
   repo-branch: main
   repo-url: "https://github.com/antonpf/mlmvn/"
   repo-actions: [issue]
@@ -35,6 +32,6 @@ website:
   sidebar:
     style: "floating"
 
-metadata-files: 
+metadata-files:
   - sidebar.yml
   - custom.yml

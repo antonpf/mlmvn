@@ -21,7 +21,8 @@ class ECL(Optimizer):
         nesterov=False,
         *,
         maximize=False,
-        foreach: Optional[bool] = None
+        foreach: Optional[bool] = None,
+        clip_angle_value=0,
     ):
         if lr is not required and lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
@@ -38,6 +39,7 @@ class ECL(Optimizer):
             nesterov=nesterov,
             maximize=maximize,
             foreach=foreach,
+            clip_angle_value=clip_angle_value,
         )
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
@@ -96,6 +98,7 @@ class ECL(Optimizer):
                 maximize=group["maximize"],
                 has_sparse_grad=has_sparse_grad,
                 foreach=group["foreach"],
+                clip_angle_value=group["clip_angle_value"],
             )
 
             # update momentum_buffers in state
@@ -122,7 +125,8 @@ def ecl(
     lr: float,
     dampening: float,
     nesterov: bool,
-    maximize: bool
+    maximize: bool,
+    clip_angle_value: float,
 ):
     r"""Functional API that performs SGD algorithm computation.
 
@@ -137,7 +141,8 @@ def ecl(
         raise RuntimeError("torch.jit.script not supported with foreach optimizers")
 
     if foreach and not torch.jit.is_scripting():
-        func = _multi_tensor_sgd
+        # func = _multi_tensor_sgd
+        raise RuntimeError("_multi_tensor_sgd not supported")
     else:
         func = _single_tensor_ecl
 
@@ -154,6 +159,7 @@ def ecl(
         nesterov=nesterov,
         has_sparse_grad=has_sparse_grad,
         maximize=maximize,
+        clip_angle_value=clip_angle_value,
     )
 
 
@@ -170,7 +176,8 @@ def _single_tensor_ecl(
     dampening: float,
     nesterov: bool,
     maximize: bool,
-    has_sparse_grad: bool
+    has_sparse_grad: bool,
+    clip_angle_value: float,
 ):
 
     toggle = True
@@ -239,6 +246,18 @@ def _single_tensor_ecl(
                 d_p = d_p.add(buf, alpha=momentum)
             else:
                 d_p = buf
+
+        if clip_angle_value != 0:
+            if torch.max(torch.abs(lr * d_p.real) >= clip_angle_value) or torch.max(
+                torch.abs(lr * d_p.imag) >= clip_angle_value
+            ):
+                real = torch.clamp(
+                    d_p.real, min=-clip_angle_value, max=clip_angle_value
+                )
+                imag = torch.clamp(
+                    d_p.imag, min=-clip_angle_value, max=clip_angle_value
+                )
+                d_p = torch.complex(real, imag)
 
         alpha = lr if maximize else -lr
         param.add_(d_p)

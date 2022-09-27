@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "mlmvn"
+  site-url: "https://antonpf.github.io/mlmvn/"
+  description: ""
+  repo-branch: main
+  repo-url: "https://github.com/antonpf/mlmvn/"

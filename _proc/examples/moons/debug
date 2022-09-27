@@ -1,6 +1,6 @@
 # %% [markdown]
 # # Building a Binary Classifier
-# 
+#
 # > In this example, the moons dataset is used to build a binary classifier.
 
 # %%
@@ -60,7 +60,7 @@ def angle2class(x: torch.tensor, categories: int, periodicity: int) -> torch.ten
 
 # %% [markdown]
 # ## Dataset
-# In this example the moons dataset is used to build a binary classifcator. The aim is to find the boundary beetween two cresecent moons. The entire data set consists of 1500 data points and is shown in the image below. 
+# In this example the moons dataset is used to build a binary classifcator. The aim is to find the boundary beetween two cresecent moons. The entire data set consists of 1500 data points and is shown in the image below.
 
 # %%
 # hide
@@ -188,7 +188,7 @@ def train(
             y_pred = model(xb)
 
             loss = criterion(y_pred, yb, categories, periodicity)
-            
+
 
             if i % 10 == 9:
                 print(torch.abs(loss))
@@ -205,10 +205,10 @@ def train(
         scores.append(accuracy(y_pred.squeeze(), y))
 
         log_dict = {
-            "loss": torch.tensor(losses[-1]), 
-            "acc": torch.tensor(scores[-1]), 
+            "loss": torch.tensor(losses[-1]),
+            "acc": torch.tensor(scores[-1]),
         }
-        
+
         # wandb.log(log_dict)
 
 
@@ -305,5 +305,3 @@ y_pred = model(X_test_t)
 y_pred = angle2class(y_pred, categories, periodicity)
 acc = accuracy(y_pred.squeeze(), y_test_t)
 acc
-
-

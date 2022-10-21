@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="In this example, the main focus is the classification of individual states of a motor.">
+
+<title>mlmvn - Sensorless Drive Diagnosis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="mlmvn - Sensorless Drive Diagnosis">
+<meta property="og:description" content="In this example, the main focus is the classification of individual states of a motor.">
+<meta property="og:site-name" content="mlmvn">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">mlmvn</span>
+    </a>
+  </div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">Sensorless Drive Diagnosis</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">MLMVN</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../layers.html" class="sidebar-item-text sidebar-link">Layers</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../loss.html" class="sidebar-item-text sidebar-link">Loss</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../optim.html" class="sidebar-item-text sidebar-link">Optimizer</a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">Examples</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../examples/xor/xor.html" class="sidebar-item-text sidebar-link">XOR</a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">Moons</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../examples/moons/moons.html" class="sidebar-item-text sidebar-link">Building a Binary Classifier</a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">SDD</a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="false">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  examples/autass/00_autass.ipynb
+  </li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#load-data" id="toc-load-data" class="nav-link active" data-scroll-target="#load-data">Load Data</a></li>
+  <li><a href="#config" id="toc-config" class="nav-link" data-scroll-target="#config">Config</a></li>
+  <li><a href="#single-layer" id="toc-single-layer" class="nav-link" data-scroll-target="#single-layer">Single Layer</a>
+  <ul>
+  <li><a href="#mlmvn-48-100-11" id="toc-mlmvn-48-100-11" class="nav-link" data-scroll-target="#mlmvn-48-100-11">MLMVN [48-100-11]</a></li>
+  <li><a href="#init" id="toc-init" class="nav-link" data-scroll-target="#init">Init</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/antonpf/mlmvn/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Sensorless Drive Diagnosis</h1>
+</div>
+
+<div>
+  <div class="description">
+    In this example, the main focus is the classification of individual states of a motor.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data">Load Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>train_csv <span class="op">=</span> pd.read_csv(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"data/autass_data2.csv"</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    header<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    dtype<span class="op">=</span>np.double,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> np.array(train_csv.values[:, <span class="dv">1</span>:<span class="dv">50</span>])</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">del</span> train_csv</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data[:, <span class="dv">0</span>:<span class="dv">48</span>]</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> data[:, <span class="dv">48</span>].astype(<span class="bu">int</span>) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>yt <span class="op">=</span> copy.copy(y)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">0</span>] <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">21</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">2</span>] <span class="op">=</span> <span class="dv">22</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">3</span>] <span class="op">=</span> <span class="dv">23</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">4</span>] <span class="op">=</span> <span class="dv">26</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">5</span>] <span class="op">=</span> <span class="dv">24</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">6</span>] <span class="op">=</span> <span class="dv">27</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">7</span>] <span class="op">=</span> <span class="dv">29</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">8</span>] <span class="op">=</span> <span class="dv">30</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">9</span>] <span class="op">=</span> <span class="dv">25</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>yt[yt <span class="op">==</span> <span class="dv">10</span>] <span class="op">=</span> <span class="dv">28</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>yt <span class="op">-=</span> <span class="dv">20</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> yt</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="kw">del</span> yt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="config" class="level2">
+<h2 class="anchored" data-anchor-id="config">Config</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>epochs <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">538</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>lr <span class="op">=</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="single-layer" class="level2">
+<h2 class="anchored" data-anchor-id="single-layer">Single Layer</h2>
+<section id="mlmvn-48-100-11" class="level3">
+<h3 class="anchored" data-anchor-id="mlmvn-48-100-11">MLMVN [48-100-11]</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>PATH <span class="op">=</span> <span class="bu">str</span>(Path.cwd() <span class="op">/</span> <span class="st">"models/autass-mlmvn_48-100-11.pt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Model(nn.Module):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, categories, periodicity):</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.categories <span class="op">=</span> categories</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.periodicity <span class="op">=</span> periodicity</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.first_linear <span class="op">=</span> FirstLayer(<span class="dv">48</span>, <span class="dv">100</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.phase_act1 <span class="op">=</span> cmplx_phase_activation()</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.linear_out <span class="op">=</span> OutputLayer(<span class="dv">100</span>, <span class="dv">11</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.phase_act2 <span class="op">=</span> cmplx_phase_activation()</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Hooks</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.first_layer_hook_handle <span class="op">=</span> <span class="va">self</span>.first_linear.register_full_backward_hook(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.first_layer_backward_hook</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.output_hook_handle <span class="op">=</span> <span class="va">self</span>.linear_out.register_full_backward_hook(</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.output_layer_backward_hook</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.first_linear(x)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.phase_act1(x)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.linear_out(x)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.phase_act2(x)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> first_layer_backward_hook(<span class="va">self</span>, module, grad_input, grad_output):</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        fc_hook(<span class="st">"first_layer"</span>, module, grad_input, grad_output)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> hidden_layer_backward_hook(<span class="va">self</span>, module, grad_input, grad_output):</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        fc_hook(<span class="st">"hidden_layer"</span>, module, grad_input, grad_output)</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> output_layer_backward_hook(<span class="va">self</span>, module, grad_input, grad_output):</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>        fc_hook(<span class="st">"output_layer"</span>, module, grad_input, grad_output)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> angle2class(<span class="va">self</span>, x: torch.tensor) <span class="op">-&gt;</span> torch.tensor:</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>        tmp <span class="op">=</span> x.angle() <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> np.pi</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        angle <span class="op">=</span> torch.remainder(tmp, <span class="dv">2</span> <span class="op">*</span> np.pi)</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># This will be the discrete output (the number of sector)</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>        o <span class="op">=</span> torch.floor(<span class="va">self</span>.categories <span class="op">*</span> <span class="va">self</span>.periodicity <span class="op">*</span> angle <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi))</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> torch.remainder(o, <span class="va">self</span>.categories)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> predict(<span class="va">self</span>, x):</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a><span class="co">        Performs the prediction task of the network</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="co">          x: torch.Tensor</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="co">            Input tensor of size ([3])</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="co">        Returns:</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="co">          Most likely class i.e., Label with the highest score</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Pass the data through the networks</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> <span class="va">self</span>.forward(x)</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>        <span class="co"># # Choose the label with the highest score</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>        <span class="co"># return torch.argmax(output, 1)</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.angle2class(output)</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> initialize_weights(<span class="va">self</span>, initilizer<span class="op">=</span><span class="st">"uniform"</span>):</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> initilizer <span class="op">==</span> <span class="st">"uniform"</span>:</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_uniform_independent_(m.weights, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_uniform_independent_(m.bias, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_uniform_independent_(m.weights, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_uniform_independent_(m.bias, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_uniform_independent_(m.weights, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_uniform_independent_(m.bias, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"normal"</span>:</span>
+<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a>                        m.weights,</span>
+<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-85"><a href="#cb5-85" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-86"><a href="#cb5-86" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-87"><a href="#cb5-87" aria-hidden="true" tabindex="-1"></a>                            m.bias,</span>
+<span id="cb5-88"><a href="#cb5-88" aria-hidden="true" tabindex="-1"></a>                        )</span>
+<span id="cb5-89"><a href="#cb5-89" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-90"><a href="#cb5-90" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-91"><a href="#cb5-91" aria-hidden="true" tabindex="-1"></a>                        m.weights,</span>
+<span id="cb5-92"><a href="#cb5-92" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-93"><a href="#cb5-93" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-94"><a href="#cb5-94" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-95"><a href="#cb5-95" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-96"><a href="#cb5-96" aria-hidden="true" tabindex="-1"></a>                            m.bias,</span>
+<span id="cb5-97"><a href="#cb5-97" aria-hidden="true" tabindex="-1"></a>                        )</span>
+<span id="cb5-98"><a href="#cb5-98" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-99"><a href="#cb5-99" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-100"><a href="#cb5-100" aria-hidden="true" tabindex="-1"></a>                        m.weights,</span>
+<span id="cb5-101"><a href="#cb5-101" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-102"><a href="#cb5-102" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-103"><a href="#cb5-103" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-104"><a href="#cb5-104" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_normal_independent_(</span>
+<span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a>                            m.bias,</span>
+<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a>                        )</span>
+<span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"ones"</span>:</span>
+<span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-110"><a href="#cb5-110" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.ones_(m.weights, imag_zero<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-111"><a href="#cb5-111" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-112"><a href="#cb5-112" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-113"><a href="#cb5-113" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-114"><a href="#cb5-114" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.ones_(m.weights, imag_zero<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-115"><a href="#cb5-115" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-116"><a href="#cb5-116" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-117"><a href="#cb5-117" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-118"><a href="#cb5-118" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.ones_(m.weights, imag_zero<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-119"><a href="#cb5-119" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-120"><a href="#cb5-120" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-121"><a href="#cb5-121" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"zeros"</span>:</span>
+<span id="cb5-122"><a href="#cb5-122" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-123"><a href="#cb5-123" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-124"><a href="#cb5-124" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.zeros_(m.weights)</span>
+<span id="cb5-125"><a href="#cb5-125" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-126"><a href="#cb5-126" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-127"><a href="#cb5-127" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-128"><a href="#cb5-128" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.zeros_(m.weights)</span>
+<span id="cb5-129"><a href="#cb5-129" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-130"><a href="#cb5-130" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-131"><a href="#cb5-131" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-132"><a href="#cb5-132" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.zeros_(m.weights)</span>
+<span id="cb5-133"><a href="#cb5-133" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-134"><a href="#cb5-134" aria-hidden="true" tabindex="-1"></a>                        nn.init.constant_(m.bias, <span class="dv">0</span>)</span>
+<span id="cb5-135"><a href="#cb5-135" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"kaiming_normal"</span>:</span>
+<span id="cb5-136"><a href="#cb5-136" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-137"><a href="#cb5-137" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-138"><a href="#cb5-138" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_normal_(m.weights)</span>
+<span id="cb5-139"><a href="#cb5-139" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-140"><a href="#cb5-140" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-141"><a href="#cb5-141" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_normal_(m.bias)</span>
+<span id="cb5-142"><a href="#cb5-142" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-143"><a href="#cb5-143" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_normal_(m.weights)</span>
+<span id="cb5-144"><a href="#cb5-144" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-145"><a href="#cb5-145" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-146"><a href="#cb5-146" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_normal_(m.bias)</span>
+<span id="cb5-147"><a href="#cb5-147" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-148"><a href="#cb5-148" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_normal_(m.weights)</span>
+<span id="cb5-149"><a href="#cb5-149" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-150"><a href="#cb5-150" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-151"><a href="#cb5-151" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_normal_(m.bias)</span>
+<span id="cb5-152"><a href="#cb5-152" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"kaiming_uniform"</span>:</span>
+<span id="cb5-153"><a href="#cb5-153" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-154"><a href="#cb5-154" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-155"><a href="#cb5-155" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_uniform_(m.weights)</span>
+<span id="cb5-156"><a href="#cb5-156" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-157"><a href="#cb5-157" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-158"><a href="#cb5-158" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_uniform_(m.bias)</span>
+<span id="cb5-159"><a href="#cb5-159" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-160"><a href="#cb5-160" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_uniform_(m.weights)</span>
+<span id="cb5-161"><a href="#cb5-161" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-162"><a href="#cb5-162" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-163"><a href="#cb5-163" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_uniform_(m.bias)</span>
+<span id="cb5-164"><a href="#cb5-164" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-165"><a href="#cb5-165" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_kaiming_uniform_(m.weights)</span>
+<span id="cb5-166"><a href="#cb5-166" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-167"><a href="#cb5-167" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-168"><a href="#cb5-168" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_kaiming_uniform_(m.bias)</span>
+<span id="cb5-169"><a href="#cb5-169" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"xavier_normal"</span>:</span>
+<span id="cb5-170"><a href="#cb5-170" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-171"><a href="#cb5-171" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-172"><a href="#cb5-172" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_normal_(m.weights)</span>
+<span id="cb5-173"><a href="#cb5-173" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-174"><a href="#cb5-174" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-175"><a href="#cb5-175" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_normal_(m.bias)</span>
+<span id="cb5-176"><a href="#cb5-176" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-177"><a href="#cb5-177" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_normal_(m.weights)</span>
+<span id="cb5-178"><a href="#cb5-178" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-179"><a href="#cb5-179" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-180"><a href="#cb5-180" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_normal_(m.bias)</span>
+<span id="cb5-181"><a href="#cb5-181" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-182"><a href="#cb5-182" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_normal_(m.weights)</span>
+<span id="cb5-183"><a href="#cb5-183" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-184"><a href="#cb5-184" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-185"><a href="#cb5-185" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_normal_(m.bias)</span>
+<span id="cb5-186"><a href="#cb5-186" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"xavier_uniform"</span>:</span>
+<span id="cb5-187"><a href="#cb5-187" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-188"><a href="#cb5-188" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-189"><a href="#cb5-189" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_uniform_(m.weights)</span>
+<span id="cb5-190"><a href="#cb5-190" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-191"><a href="#cb5-191" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-192"><a href="#cb5-192" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_uniform_(m.bias)</span>
+<span id="cb5-193"><a href="#cb5-193" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-194"><a href="#cb5-194" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_uniform_(m.weights)</span>
+<span id="cb5-195"><a href="#cb5-195" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-196"><a href="#cb5-196" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-197"><a href="#cb5-197" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_uniform_(m.bias)</span>
+<span id="cb5-198"><a href="#cb5-198" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-199"><a href="#cb5-199" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_xavier_uniform_(m.weights)</span>
+<span id="cb5-200"><a href="#cb5-200" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-201"><a href="#cb5-201" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-202"><a href="#cb5-202" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_xavier_uniform_(m.bias)</span>
+<span id="cb5-203"><a href="#cb5-203" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_standard_glorot"</span>:</span>
+<span id="cb5-204"><a href="#cb5-204" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-205"><a href="#cb5-205" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-206"><a href="#cb5-206" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights)</span>
+<span id="cb5-207"><a href="#cb5-207" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-208"><a href="#cb5-208" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-209"><a href="#cb5-209" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias)</span>
+<span id="cb5-210"><a href="#cb5-210" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-211"><a href="#cb5-211" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights)</span>
+<span id="cb5-212"><a href="#cb5-212" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-213"><a href="#cb5-213" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-214"><a href="#cb5-214" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias)</span>
+<span id="cb5-215"><a href="#cb5-215" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-216"><a href="#cb5-216" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights)</span>
+<span id="cb5-217"><a href="#cb5-217" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-218"><a href="#cb5-218" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-219"><a href="#cb5-219" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias)</span>
+<span id="cb5-220"><a href="#cb5-220" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_independent_glorot"</span>:</span>
+<span id="cb5-221"><a href="#cb5-221" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-222"><a href="#cb5-222" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-223"><a href="#cb5-223" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights)</span>
+<span id="cb5-224"><a href="#cb5-224" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-225"><a href="#cb5-225" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-226"><a href="#cb5-226" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias)</span>
+<span id="cb5-227"><a href="#cb5-227" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-228"><a href="#cb5-228" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights)</span>
+<span id="cb5-229"><a href="#cb5-229" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-230"><a href="#cb5-230" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-231"><a href="#cb5-231" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias)</span>
+<span id="cb5-232"><a href="#cb5-232" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-233"><a href="#cb5-233" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights)</span>
+<span id="cb5-234"><a href="#cb5-234" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-235"><a href="#cb5-235" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-236"><a href="#cb5-236" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias)</span>
+<span id="cb5-237"><a href="#cb5-237" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_standard_xavier"</span>:</span>
+<span id="cb5-238"><a href="#cb5-238" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-239"><a href="#cb5-239" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-240"><a href="#cb5-240" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-241"><a href="#cb5-241" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-242"><a href="#cb5-242" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-243"><a href="#cb5-243" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-244"><a href="#cb5-244" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-245"><a href="#cb5-245" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-246"><a href="#cb5-246" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-247"><a href="#cb5-247" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-248"><a href="#cb5-248" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-249"><a href="#cb5-249" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-250"><a href="#cb5-250" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-251"><a href="#cb5-251" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-252"><a href="#cb5-252" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-253"><a href="#cb5-253" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-254"><a href="#cb5-254" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_independent_xavier"</span>:</span>
+<span id="cb5-255"><a href="#cb5-255" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-256"><a href="#cb5-256" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-257"><a href="#cb5-257" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-258"><a href="#cb5-258" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-259"><a href="#cb5-259" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-260"><a href="#cb5-260" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-261"><a href="#cb5-261" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-262"><a href="#cb5-262" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-263"><a href="#cb5-263" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-264"><a href="#cb5-264" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-265"><a href="#cb5-265" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-266"><a href="#cb5-266" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-267"><a href="#cb5-267" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-268"><a href="#cb5-268" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-269"><a href="#cb5-269" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-270"><a href="#cb5-270" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"xavier"</span>)</span>
+<span id="cb5-271"><a href="#cb5-271" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_standard_kaiming"</span>:</span>
+<span id="cb5-272"><a href="#cb5-272" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-273"><a href="#cb5-273" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-274"><a href="#cb5-274" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-275"><a href="#cb5-275" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-276"><a href="#cb5-276" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-277"><a href="#cb5-277" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-278"><a href="#cb5-278" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-279"><a href="#cb5-279" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-280"><a href="#cb5-280" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-281"><a href="#cb5-281" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-282"><a href="#cb5-282" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-283"><a href="#cb5-283" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-284"><a href="#cb5-284" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-285"><a href="#cb5-285" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-286"><a href="#cb5-286" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-287"><a href="#cb5-287" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-288"><a href="#cb5-288" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_independent_kaiming"</span>:</span>
+<span id="cb5-289"><a href="#cb5-289" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-290"><a href="#cb5-290" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-291"><a href="#cb5-291" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-292"><a href="#cb5-292" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-293"><a href="#cb5-293" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-294"><a href="#cb5-294" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-295"><a href="#cb5-295" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-296"><a href="#cb5-296" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-297"><a href="#cb5-297" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-298"><a href="#cb5-298" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-299"><a href="#cb5-299" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-300"><a href="#cb5-300" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-301"><a href="#cb5-301" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-302"><a href="#cb5-302" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-303"><a href="#cb5-303" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-304"><a href="#cb5-304" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"kaiming"</span>)</span>
+<span id="cb5-305"><a href="#cb5-305" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_standard_he"</span>:</span>
+<span id="cb5-306"><a href="#cb5-306" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-307"><a href="#cb5-307" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-308"><a href="#cb5-308" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-309"><a href="#cb5-309" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-310"><a href="#cb5-310" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-311"><a href="#cb5-311" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-312"><a href="#cb5-312" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-313"><a href="#cb5-313" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-314"><a href="#cb5-314" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-315"><a href="#cb5-315" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-316"><a href="#cb5-316" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-317"><a href="#cb5-317" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-318"><a href="#cb5-318" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_standard_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-319"><a href="#cb5-319" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-320"><a href="#cb5-320" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-321"><a href="#cb5-321" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_standard_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-322"><a href="#cb5-322" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> initilizer <span class="op">==</span> <span class="st">"trabelsi_independent_he"</span>:</span>
+<span id="cb5-323"><a href="#cb5-323" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> m <span class="kw">in</span> <span class="va">self</span>.modules():</span>
+<span id="cb5-324"><a href="#cb5-324" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">isinstance</span>(m, FirstLayer):</span>
+<span id="cb5-325"><a href="#cb5-325" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-326"><a href="#cb5-326" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-327"><a href="#cb5-327" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-328"><a href="#cb5-328" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-329"><a href="#cb5-329" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, HiddenLayer):</span>
+<span id="cb5-330"><a href="#cb5-330" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-331"><a href="#cb5-331" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-332"><a href="#cb5-332" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-333"><a href="#cb5-333" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-334"><a href="#cb5-334" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> <span class="bu">isinstance</span>(m, OutputLayer):</span>
+<span id="cb5-335"><a href="#cb5-335" aria-hidden="true" tabindex="-1"></a>                    cmplx_init.cplx_trabelsi_independent_(m.weights, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-336"><a href="#cb5-336" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> m.bias <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb5-337"><a href="#cb5-337" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># nn.init.constant_(m.bias,0)</span></span>
+<span id="cb5-338"><a href="#cb5-338" aria-hidden="true" tabindex="-1"></a>                        cmplx_init.cplx_trabelsi_independent_(m.bias, kind<span class="op">=</span><span class="st">"he"</span>)</span>
+<span id="cb5-339"><a href="#cb5-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-340"><a href="#cb5-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-341"><a href="#cb5-341" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit(model, X, y, epochs, batch_size, optimizer, criterion, categories, periodicity):</span>
+<span id="cb5-342"><a href="#cb5-342" aria-hidden="true" tabindex="-1"></a>    <span class="co"># List of losses for visualization</span></span>
+<span id="cb5-343"><a href="#cb5-343" aria-hidden="true" tabindex="-1"></a>    losses <span class="op">=</span> []</span>
+<span id="cb5-344"><a href="#cb5-344" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> []</span>
+<span id="cb5-345"><a href="#cb5-345" aria-hidden="true" tabindex="-1"></a>    acc_best <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-346"><a href="#cb5-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-347"><a href="#cb5-347" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(epochs):</span>
+<span id="cb5-348"><a href="#cb5-348" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Pass the data through the network and compute the loss</span></span>
+<span id="cb5-349"><a href="#cb5-349" aria-hidden="true" tabindex="-1"></a>        <span class="co"># We'll use the whole dataset during the training instead of using batches</span></span>
+<span id="cb5-350"><a href="#cb5-350" aria-hidden="true" tabindex="-1"></a>        <span class="co"># in to order to keep the code simple for now.</span></span>
+<span id="cb5-351"><a href="#cb5-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-352"><a href="#cb5-352" aria-hidden="true" tabindex="-1"></a>        batch_loss <span class="op">=</span> []</span>
+<span id="cb5-353"><a href="#cb5-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-354"><a href="#cb5-354" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>((X.shape[<span class="dv">0</span>] <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> batch_size <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb5-355"><a href="#cb5-355" aria-hidden="true" tabindex="-1"></a>            start_j <span class="op">=</span> j <span class="op">*</span> batch_size</span>
+<span id="cb5-356"><a href="#cb5-356" aria-hidden="true" tabindex="-1"></a>            end_j <span class="op">=</span> start_j <span class="op">+</span> batch_size</span>
+<span id="cb5-357"><a href="#cb5-357" aria-hidden="true" tabindex="-1"></a>            xb <span class="op">=</span> X[start_j:end_j]</span>
+<span id="cb5-358"><a href="#cb5-358" aria-hidden="true" tabindex="-1"></a>            yb <span class="op">=</span> y[start_j:end_j]</span>
+<span id="cb5-359"><a href="#cb5-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-360"><a href="#cb5-360" aria-hidden="true" tabindex="-1"></a>            y_pred <span class="op">=</span> model(xb)</span>
+<span id="cb5-361"><a href="#cb5-361" aria-hidden="true" tabindex="-1"></a>            loss <span class="op">=</span> criterion(y_pred, yb, categories, periodicity)</span>
+<span id="cb5-362"><a href="#cb5-362" aria-hidden="true" tabindex="-1"></a>            batch_loss.append((torch.<span class="bu">abs</span>(loss)).detach().numpy())</span>
+<span id="cb5-363"><a href="#cb5-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-364"><a href="#cb5-364" aria-hidden="true" tabindex="-1"></a>            optimizer.zero_grad()</span>
+<span id="cb5-365"><a href="#cb5-365" aria-hidden="true" tabindex="-1"></a>            loss.backward()</span>
+<span id="cb5-366"><a href="#cb5-366" aria-hidden="true" tabindex="-1"></a>            optimizer.step(inputs<span class="op">=</span>xb, layers<span class="op">=</span><span class="bu">list</span>(model.children()))</span>
+<span id="cb5-367"><a href="#cb5-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-368"><a href="#cb5-368" aria-hidden="true" tabindex="-1"></a>        losses.append(<span class="bu">sum</span>(batch_loss) <span class="op">/</span> <span class="bu">len</span>(batch_loss))</span>
+<span id="cb5-369"><a href="#cb5-369" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span> <span class="dv">9</span>:</span>
+<span id="cb5-370"><a href="#cb5-370" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Epoch </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss"> loss is </span><span class="sc">{</span>losses[<span class="op">-</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-371"><a href="#cb5-371" aria-hidden="true" tabindex="-1"></a>        y_pred <span class="op">=</span> model.predict(X)</span>
+<span id="cb5-372"><a href="#cb5-372" aria-hidden="true" tabindex="-1"></a>        scores.append(accuracy(y_pred.squeeze(), y))</span>
+<span id="cb5-373"><a href="#cb5-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-374"><a href="#cb5-374" aria-hidden="true" tabindex="-1"></a>        Logger.current_logger().report_scalar(</span>
+<span id="cb5-375"><a href="#cb5-375" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Loss/Acc"</span>, <span class="st">"Loss"</span>, iteration<span class="op">=</span>i, value<span class="op">=</span>losses[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb5-376"><a href="#cb5-376" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-377"><a href="#cb5-377" aria-hidden="true" tabindex="-1"></a>        writer.add_scalar(<span class="st">"Loss"</span>, losses[<span class="op">-</span><span class="dv">1</span>], i)</span>
+<span id="cb5-378"><a href="#cb5-378" aria-hidden="true" tabindex="-1"></a>        Logger.current_logger().report_scalar(</span>
+<span id="cb5-379"><a href="#cb5-379" aria-hidden="true" tabindex="-1"></a>            <span class="st">"Loss/Acc"</span>, <span class="st">"Acc"</span>, iteration<span class="op">=</span>i, value<span class="op">=</span>scores[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb5-380"><a href="#cb5-380" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-381"><a href="#cb5-381" aria-hidden="true" tabindex="-1"></a>        writer.add_scalar(<span class="st">"Accuracy"</span>, scores[<span class="op">-</span><span class="dv">1</span>], i)</span>
+<span id="cb5-382"><a href="#cb5-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-383"><a href="#cb5-383" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> key <span class="kw">in</span> model_dict:</span>
+<span id="cb5-384"><a href="#cb5-384" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> key_layer <span class="kw">in</span> model_dict[key]:</span>
+<span id="cb5-385"><a href="#cb5-385" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> key_layer <span class="kw">in</span> [<span class="st">"weights"</span>, <span class="st">"bias"</span>]:</span>
+<span id="cb5-386"><a href="#cb5-386" aria-hidden="true" tabindex="-1"></a>                    log_label <span class="op">=</span> <span class="bu">str</span>(key) <span class="op">+</span> <span class="st">"_"</span> <span class="op">+</span> <span class="bu">str</span>(key_layer)</span>
+<span id="cb5-387"><a href="#cb5-387" aria-hidden="true" tabindex="-1"></a>                    log_label.replace(<span class="st">" "</span>, <span class="st">""</span>)</span>
+<span id="cb5-388"><a href="#cb5-388" aria-hidden="true" tabindex="-1"></a>                    writer.add_histogram(</span>
+<span id="cb5-389"><a href="#cb5-389" aria-hidden="true" tabindex="-1"></a>                        log_label <span class="op">+</span> <span class="st">"_real"</span>, model_dict[key][key_layer].real, i</span>
+<span id="cb5-390"><a href="#cb5-390" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-391"><a href="#cb5-391" aria-hidden="true" tabindex="-1"></a>                    writer.add_histogram(</span>
+<span id="cb5-392"><a href="#cb5-392" aria-hidden="true" tabindex="-1"></a>                        log_label <span class="op">+</span> <span class="st">"_imag"</span>, model_dict[key][key_layer].imag, i</span>
+<span id="cb5-393"><a href="#cb5-393" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-394"><a href="#cb5-394" aria-hidden="true" tabindex="-1"></a>                    writer.add_histogram(</span>
+<span id="cb5-395"><a href="#cb5-395" aria-hidden="true" tabindex="-1"></a>                        log_label <span class="op">+</span> <span class="st">"_mag"</span>, torch.<span class="bu">abs</span>(model_dict[key][key_layer]), i</span>
+<span id="cb5-396"><a href="#cb5-396" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-397"><a href="#cb5-397" aria-hidden="true" tabindex="-1"></a>                    writer.add_histogram(</span>
+<span id="cb5-398"><a href="#cb5-398" aria-hidden="true" tabindex="-1"></a>                        log_label <span class="op">+</span> <span class="st">"_angle"</span>, torch.angle(model_dict[key][key_layer]), i</span>
+<span id="cb5-399"><a href="#cb5-399" aria-hidden="true" tabindex="-1"></a>                    )</span>
+<span id="cb5-400"><a href="#cb5-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-401"><a href="#cb5-401" aria-hidden="true" tabindex="-1"></a>        <span class="co"># writer.add_histogram("distribution centers", x + n_iter, i)</span></span>
+<span id="cb5-402"><a href="#cb5-402" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> scores[<span class="op">-</span><span class="dv">1</span>] <span class="op">&gt;</span> acc_best:</span>
+<span id="cb5-403"><a href="#cb5-403" aria-hidden="true" tabindex="-1"></a>            acc_best <span class="op">=</span> scores[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb5-404"><a href="#cb5-404" aria-hidden="true" tabindex="-1"></a>            torch.save(model.state_dict(), PATH)</span>
+<span id="cb5-405"><a href="#cb5-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-406"><a href="#cb5-406" aria-hidden="true" tabindex="-1"></a>    writer.close()</span>
+<span id="cb5-407"><a href="#cb5-407" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> losses, scores</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="init" class="level3">
+<h3 class="anchored" data-anchor-id="init">Init</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>initilizers <span class="op">=</span> [</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"uniform"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"normal"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># "zeros",</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># "ones",</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"kaiming_normal"</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"kaiming_uniform"</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xavier_normal"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xavier_uniform"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_standard_glorot"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_independent_glorot"</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_standard_xavier"</span>,</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_independent_xavier"</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_standard_kaiming"</span>,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_independent_kaiming"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_standard_he"</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"trabelsi_independent_he"</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> initilizer <span class="kw">in</span> initilizers:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    model <span class="op">=</span> Model(categories<span class="op">=</span>categories, periodicity<span class="op">=</span>periodicity)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    model.initialize_weights(initilizer<span class="op">=</span>initilizer)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    criterion <span class="op">=</span> ComplexMSELoss.<span class="bu">apply</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    optimizer <span class="op">=</span> ECL(model.parameters(), lr<span class="op">=</span>lr)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    task <span class="op">=</span> Task.init(</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        project_name<span class="op">=</span><span class="st">"mlmvn"</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        task_name<span class="op">=</span><span class="st">"SDD-mlmvn-[48-100-11]"</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        tags<span class="op">=</span>[<span class="st">"mlmvn"</span>, <span class="st">"SDD"</span>, <span class="st">"initilizer_with_bias"</span>],</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    writer <span class="op">=</span> SummaryWriter()</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#  capture a dictionary of hyperparameters with config</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    config_dict <span class="op">=</span> {</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"learning_rate"</span>: lr,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"epochs"</span>: epochs,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">"batch_size"</span>: batch_size,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"optim"</span>: <span class="st">"ECL"</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">"categories"</span>: categories,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>        <span class="st">"periodicity"</span>: periodicity,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>        <span class="st">"layer"</span>: <span class="st">"[48-100-11]"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>        <span class="st">"initilizer"</span>: initilizer,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    task.<span class="ex">connect</span>(config_dict)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    x_train, x_valid, y_train, y_valid <span class="op">=</span> get_splitted_data(X, y, neuronCats)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    losses, scores <span class="op">=</span> fit(</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>        model,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>        x_train,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>        y_train,</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>        epochs<span class="op">=</span>epochs,</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>        batch_size<span class="op">=</span>batch_size,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>        optimizer<span class="op">=</span>optimizer,</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>        criterion<span class="op">=</span>criterion,</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        categories<span class="op">=</span>categories,</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        periodicity<span class="op">=</span>periodicity,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    model.load_state_dict(torch.load(PATH))</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> model.predict(x_train)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    acc <span class="op">=</span> accuracy(y_pred.squeeze(), y_train)</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Train Acc.: "</span>, acc)</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    Logger.current_logger().report_single_value(</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"Train Acc."</span>,</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>        value<span class="op">=</span>acc,</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> model.predict(x_valid)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>    acc <span class="op">=</span> accuracy(y_pred.squeeze(), y_valid)</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Val Acc.: "</span>, acc)</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    Logger.current_logger().report_single_value(</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>        name<span class="op">=</span><span class="st">"Val Acc."</span>,</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>        value<span class="op">=</span>acc,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(classification_report(y_valid, y_pred.detach().numpy(), zero_division<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    task.mark_completed()</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>    task.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ClearML Task: created new task id=8c4dc60250654161a4455e9fb49f6061
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/8c4dc60250654161a4455e9fb49f6061/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2022-09-20 20:03:11,212 - clearml.frameworks - INFO - Found existing registered model id=0f73e6db01fc42988672e4f44c0add5f [/home/antonpfeifer/Documents/mlmvn/nbs/examples/autass/models/autass-mlmvn_48-100-11.pt] reusing it.
+Epoch 9 loss is 0.13520533966014758
+Epoch 19 loss is 0.09242117989507001
+Epoch 29 loss is 0.06890200001316225
+Epoch 39 loss is 0.06940312129715898
+Epoch 49 loss is 0.0739187122910833
+Train Acc.:  0.9514164850660172
+Val Acc.:  0.9457404084422798
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.97      1074
+           1       0.95      0.91      0.93      1089
+           2       0.99      0.98      0.99      1044
+           3       0.98      0.98      0.98      1048
+           4       0.95      0.96      0.96      1057
+           5       0.93      0.94      0.94      1072
+           6       0.93      0.90      0.92      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.93      0.95      1030
+          10       0.99      0.96      0.98      1012
+
+   micro avg       0.97      0.96      0.96     11703
+   macro avg       0.97      0.96      0.96     11703
+weighted avg       0.97      0.96      0.96     11703
+ samples avg       0.95      0.96      0.95     11703
+
+ClearML Task: created new task id=671fc38623e64b04b2183783d6660d82
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/671fc38623e64b04b2183783d6660d82/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.6364161542642706
+Epoch 19 loss is 0.4933384342885658
+Epoch 29 loss is 0.2978411113611267
+Epoch 39 loss is 0.17510296008646237
+Epoch 49 loss is 0.136787017185157
+Train Acc.:  0.8634576763662778
+Val Acc.:  0.8490985217465608
+              precision    recall  f1-score   support
+
+           0       0.95      0.96      0.95      1074
+           1       0.87      0.85      0.86      1089
+           2       0.93      0.84      0.88      1044
+           3       0.96      0.92      0.94      1048
+           4       0.90      0.84      0.87      1057
+           5       0.89      0.85      0.87      1072
+           6       0.89      0.83      0.86      1066
+           7       0.99      0.99      0.99      1103
+           8       0.98      1.00      0.99      1108
+           9       0.91      0.91      0.91      1030
+          10       0.89      0.77      0.83      1012
+
+   micro avg       0.92      0.89      0.91     11703
+   macro avg       0.92      0.89      0.90     11703
+weighted avg       0.92      0.89      0.91     11703
+ samples avg       0.87      0.89      0.88     11703
+
+ClearML Task: created new task id=cbd1148dc06c4bb484e287631dbecfe1
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/cbd1148dc06c4bb484e287631dbecfe1/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.13064789010576158
+Epoch 19 loss is 0.08065432691827415
+Epoch 29 loss is 0.07580616387918908
+Epoch 39 loss is 0.06079223146693188
+Epoch 49 loss is 0.05756999806851636
+Train Acc.:  0.9545784728453617
+Val Acc.:  0.9430915149961548
+              precision    recall  f1-score   support
+
+           0       0.99      0.97      0.98      1074
+           1       0.95      0.94      0.95      1089
+           2       0.99      0.97      0.98      1044
+           3       0.99      0.98      0.98      1048
+           4       0.94      0.94      0.94      1057
+           5       0.95      0.94      0.94      1072
+           6       0.94      0.92      0.93      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.95      0.93      0.94      1030
+          10       0.99      0.94      0.96      1012
+
+   micro avg       0.97      0.96      0.96     11703
+   macro avg       0.97      0.96      0.96     11703
+weighted avg       0.97      0.96      0.96     11703
+ samples avg       0.95      0.96      0.95     11703
+
+ClearML Task: created new task id=24fb62f34d6045dc84880b3cdb4ff51e
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/24fb62f34d6045dc84880b3cdb4ff51e/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.13044388983633648
+Epoch 19 loss is 0.08460253840021804
+Epoch 29 loss is 0.07930393311991951
+Epoch 39 loss is 0.06527583675469127
+Epoch 49 loss is 0.05000301778597409
+Train Acc.:  0.9599196684185788
+Val Acc.:  0.948645646415449
+              precision    recall  f1-score   support
+
+           0       0.98      0.98      0.98      1074
+           1       0.95      0.94      0.95      1089
+           2       1.00      0.98      0.99      1044
+           3       0.99      0.98      0.98      1048
+           4       0.95      0.96      0.95      1057
+           5       0.96      0.94      0.95      1072
+           6       0.93      0.92      0.92      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.94      0.95      0.94      1030
+          10       0.99      0.96      0.98      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=76f869fd23be4c139728384b8cde4c7a
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/76f869fd23be4c139728384b8cde4c7a/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.09251221922659182
+Epoch 19 loss is 0.06227124288757633
+Epoch 29 loss is 0.059843142229535094
+Epoch 39 loss is 0.06101339361081321
+Epoch 49 loss is 0.05014295614441572
+Train Acc.:  0.9669059522283467
+Val Acc.:  0.9546270187131505
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.93      0.93      0.93      1089
+           2       0.99      0.98      0.99      1044
+           3       0.98      0.98      0.98      1048
+           4       0.97      0.95      0.96      1057
+           5       0.94      0.93      0.93      1072
+           6       0.96      0.94      0.95      1066
+           7       1.00      1.00      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.97      0.96      0.96      1030
+          10       0.99      0.98      0.98      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=2f0b154634c74df4adf05315bed073df
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/2f0b154634c74df4adf05315bed073df/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.10127652630034135
+Epoch 19 loss is 0.10470796996730673
+Epoch 29 loss is 0.061063666924023825
+Epoch 39 loss is 0.06377833585016535
+Epoch 49 loss is 0.046801240935354885
+Train Acc.:  0.9597487501602359
+Val Acc.:  0.9475348201315902
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.95      0.93      0.94      1089
+           2       1.00      0.98      0.99      1044
+           3       0.99      0.98      0.98      1048
+           4       0.96      0.96      0.96      1057
+           5       0.94      0.94      0.94      1072
+           6       0.95      0.93      0.94      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.95      0.93      0.94      1030
+          10       0.99      0.96      0.97      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.95      0.96      0.96     11703
+
+ClearML Task: created new task id=cf0a0472af3947029f29e2ec9a6d83ae
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/cf0a0472af3947029f29e2ec9a6d83ae/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.09907775976141676
+Epoch 19 loss is 0.07054048413195367
+Epoch 29 loss is 0.05308170731832958
+Epoch 39 loss is 0.049473569621797074
+Epoch 49 loss is 0.04445638241988443
+Train Acc.:  0.9670127761398112
+Val Acc.:  0.9555669486456464
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.96      0.94      0.95      1089
+           2       1.00      0.99      0.99      1044
+           3       0.99      0.97      0.98      1048
+           4       0.96      0.95      0.96      1057
+           5       0.96      0.94      0.95      1072
+           6       0.97      0.91      0.94      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.96      0.96      1030
+          10       0.99      0.96      0.98      1012
+
+   micro avg       0.98      0.96      0.97     11703
+   macro avg       0.98      0.96      0.97     11703
+weighted avg       0.98      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=33833dedc47446eeb1262956c279de8b
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/33833dedc47446eeb1262956c279de8b/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.09330733755305037
+Epoch 19 loss is 0.07534531581462517
+Epoch 29 loss is 0.05881492036979832
+Epoch 39 loss is 0.05424361085964104
+Epoch 49 loss is 0.0515420224426341
+Train Acc.:  0.9599837627654574
+Val Acc.:  0.9484747500640861
+              precision    recall  f1-score   support
+
+           0       0.99      0.97      0.98      1074
+           1       0.94      0.94      0.94      1089
+           2       0.99      0.98      0.98      1044
+           3       0.99      0.98      0.98      1048
+           4       0.95      0.95      0.95      1057
+           5       0.94      0.94      0.94      1072
+           6       0.94      0.93      0.93      1066
+           7       1.00      1.00      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.95      0.95      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=d2a3805e299c4aabb89fc97016b870fe
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/d2a3805e299c4aabb89fc97016b870fe/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.09907775976141676
+Epoch 19 loss is 0.07054048413195367
+Epoch 29 loss is 0.05308170731832958
+Epoch 39 loss is 0.049473569621797074
+Epoch 49 loss is 0.04445638241988443
+Train Acc.:  0.9670127761398112
+Val Acc.:  0.9555669486456464
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.96      0.94      0.95      1089
+           2       1.00      0.99      0.99      1044
+           3       0.99      0.97      0.98      1048
+           4       0.96      0.95      0.96      1057
+           5       0.96      0.94      0.95      1072
+           6       0.97      0.91      0.94      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.96      0.96      1030
+          10       0.99      0.96      0.98      1012
+
+   micro avg       0.98      0.96      0.97     11703
+   macro avg       0.98      0.96      0.97     11703
+weighted avg       0.98      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=71209c3ecb8f4c288e9ae2fc47316b43
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/71209c3ecb8f4c288e9ae2fc47316b43/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.09330733755305037
+Epoch 19 loss is 0.07534531581462517
+Epoch 29 loss is 0.05881492036979832
+Epoch 39 loss is 0.05424361085964104
+Epoch 49 loss is 0.0515420224426341
+Train Acc.:  0.9599837627654574
+Val Acc.:  0.9484747500640861
+              precision    recall  f1-score   support
+
+           0       0.99      0.97      0.98      1074
+           1       0.94      0.94      0.94      1089
+           2       0.99      0.98      0.98      1044
+           3       0.99      0.98      0.98      1048
+           4       0.95      0.95      0.95      1057
+           5       0.94      0.94      0.94      1072
+           6       0.94      0.93      0.93      1066
+           7       1.00      1.00      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.95      0.95      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.96      0.96      0.96     11703
+
+ClearML Task: created new task id=0d5788d998d14b34b4db688e7e454039
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/0d5788d998d14b34b4db688e7e454039/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.12687696724868183
+Epoch 19 loss is 0.08206688501021006
+Epoch 29 loss is 0.0666472617605075
+Epoch 39 loss is 0.05526746285190691
+Epoch 49 loss is 0.05272579846101851
+Train Acc.:  0.9609024484040508
+Val Acc.:  0.9495855763479449
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.96      0.91      0.93      1089
+           2       0.99      0.98      0.99      1044
+           3       0.98      0.97      0.98      1048
+           4       0.95      0.94      0.94      1057
+           5       0.94      0.94      0.94      1072
+           6       0.97      0.93      0.95      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.96      0.96      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.95      0.96      0.96     11703
+
+ClearML Task: created new task id=dbd3f157afbf49a89e470c1f289309a7
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/dbd3f157afbf49a89e470c1f289309a7/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.12607126522572562
+Epoch 19 loss is 0.08197840312344751
+Epoch 29 loss is 0.06853510060918785
+Epoch 39 loss is 0.06352552227624415
+Epoch 49 loss is 0.05255373344230446
+Train Acc.:  0.9568431397684057
+Val Acc.:  0.9483893018884046
+              precision    recall  f1-score   support
+
+           0       0.99      0.97      0.98      1074
+           1       0.96      0.92      0.94      1089
+           2       1.00      0.98      0.99      1044
+           3       0.98      0.97      0.98      1048
+           4       0.96      0.95      0.95      1057
+           5       0.96      0.94      0.95      1072
+           6       0.96      0.92      0.94      1066
+           7       1.00      1.00      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.94      0.94      0.94      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.98      0.96      0.97     11703
+   macro avg       0.98      0.96      0.97     11703
+weighted avg       0.98      0.96      0.97     11703
+ samples avg       0.95      0.96      0.96     11703
+
+ClearML Task: created new task id=c9f5e2d5eae84023829ccbb07f66f1c6
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/c9f5e2d5eae84023829ccbb07f66f1c6/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.12687696724868183
+Epoch 19 loss is 0.08206688501021006
+Epoch 29 loss is 0.0666472617605075
+Epoch 39 loss is 0.05526746285190691
+Epoch 49 loss is 0.05272579846101851
+Train Acc.:  0.9609024484040508
+Val Acc.:  0.9495855763479449
+              precision    recall  f1-score   support
+
+           0       0.98      0.97      0.98      1074
+           1       0.96      0.91      0.93      1089
+           2       0.99      0.98      0.99      1044
+           3       0.98      0.97      0.98      1048
+           4       0.95      0.94      0.94      1057
+           5       0.94      0.94      0.94      1072
+           6       0.97      0.93      0.95      1066
+           7       1.00      0.99      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.96      0.96      0.96      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.97      0.96      0.97     11703
+   macro avg       0.97      0.96      0.97     11703
+weighted avg       0.97      0.96      0.97     11703
+ samples avg       0.95      0.96      0.96     11703
+
+ClearML Task: created new task id=18941c1c20824769905082794a13375e
+ClearML results page: http://194.94.231.172:8080/projects/cdefd6ee85454e49be01962ad715eca0/experiments/18941c1c20824769905082794a13375e/output/log</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_21707/161459083.py:46: UserWarning:
+
+To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Epoch 9 loss is 0.12607126522572562
+Epoch 19 loss is 0.08197840312344751
+Epoch 29 loss is 0.06853510060918785
+Epoch 39 loss is 0.06352552227624415
+Epoch 49 loss is 0.05255373344230446
+Train Acc.:  0.9568431397684057
+Val Acc.:  0.9483893018884046
+              precision    recall  f1-score   support
+
+           0       0.99      0.97      0.98      1074
+           1       0.96      0.92      0.94      1089
+           2       1.00      0.98      0.99      1044
+           3       0.98      0.97      0.98      1048
+           4       0.96      0.95      0.95      1057
+           5       0.96      0.94      0.95      1072
+           6       0.96      0.92      0.94      1066
+           7       1.00      1.00      1.00      1103
+           8       1.00      1.00      1.00      1108
+           9       0.94      0.94      0.94      1030
+          10       0.98      0.96      0.97      1012
+
+   micro avg       0.98      0.96      0.97     11703
+   macro avg       0.98      0.96      0.97     11703
+weighted avg       0.98      0.96      0.97     11703
+ samples avg       0.95      0.96      0.96     11703
+</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

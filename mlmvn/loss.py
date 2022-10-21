@@ -77,7 +77,7 @@ class ComplexMSE_adjusted_error(Function):
         b = 0.5
         c = 0.5
         d = 2.0
-        offset = 0.1
+        offset = 1
 
         membership = (
             -offset

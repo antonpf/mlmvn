@@ -1,0 +1,24 @@
+# General
+ipykernel
+jupyter
+pre_commit
+nbdev
+pandas
+numpy
+tqdm
+pillow
+
+# Plot
+matplotlib
+altair<5
+seaborn
+
+# Tracking
+tensorboard
+
+# ML
+torch
+torchaudio
+torchvision
+scikit-learn
+scipy
